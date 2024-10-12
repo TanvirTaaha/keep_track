@@ -18,6 +18,17 @@ defmodule KeepTrackWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    live "/home", Live.HomeLive
+  end
+
+  scope "/auth", KeepTrackWeb do
+    pipe_through :browser
+
+    get "/:provider", AuthController, :request
+    get "/:provider/callback", AuthController, :callback
+    # post "/:provider/callback", AuthController, :callback
+    # delete "/logout", AuthController, :delete
   end
 
   # Other scopes may use custom stacks.

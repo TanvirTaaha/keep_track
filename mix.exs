@@ -60,7 +60,10 @@ defmodule KeepTrack.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
       {:google_api_keep, "~> 0.3.0"},
-      {:google_api_tasks, "~> 0.16.0"}
+      {:google_api_tasks, "~> 0.16.0"},
+      {:ueberauth, "~> 0.10"},
+      {:ueberauth_google, "~> 0.10"},
+      {:oauth2, "~> 2.0", override: true}
     ]
   end
 
