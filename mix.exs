@@ -58,7 +58,9 @@ defmodule KeepTrack.MixProject do
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
-      {:bandit, "~> 1.5"}
+      {:bandit, "~> 1.5"},
+      {:google_api_keep, "~> 0.3.0"},
+      {:google_api_tasks, "~> 0.16.0"}
     ]
   end
 
