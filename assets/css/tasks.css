@@ -1,7 +1,7 @@
 #tasks {
-  @apply text-center h-full w-full
+  @apply flex justify-center items-center h-full w-full;
 }
 
 #tasks h1 {
-  @apply text-center text-gray-900 font-extrabold text-4xl mb-8;
+  @apply text-gray-900 font-extrabold text-4xl mb-8;
 }

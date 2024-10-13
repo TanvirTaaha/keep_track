@@ -18,9 +18,12 @@ defmodule KeepTrackWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    get "/dummy", PageController, :dummy
   end
 
   scope "/", KeepTrackWeb.Live do
+    pipe_through :browser
+
     live "/tasks", TasksLive
   end
 

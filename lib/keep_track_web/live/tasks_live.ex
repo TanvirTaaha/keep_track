@@ -8,7 +8,7 @@ defmodule KeepTrackWeb.Live.TasksLive do
   def render(assigns) do
     ~H"""
     <div id="tasks">
-      <h1>Tasks</h1>
+      <h1>Live h1</h1>
     </div>
     """
   end
