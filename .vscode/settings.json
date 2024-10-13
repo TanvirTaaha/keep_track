@@ -18,5 +18,6 @@
   "explorer.compactFolders": true,
   "ros.distro": "noetic",
   "git.autofetch": true,
-  "git.autofetchPeriod": 600
+  "git.autofetchPeriod": 600,
+  "editor.tabSize": 2
 }

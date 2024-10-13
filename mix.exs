@@ -59,8 +59,10 @@ defmodule KeepTrack.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
-      {:google_api_keep, "~> 0.3.0"},
-      {:google_api_tasks, "~> 0.16.0"}
+      {:google_api_tasks, "~> 0.16.0"},
+      {:google_api_sheets, "~> 0.33.4"},
+      {:oauth2, "~> 2.0"},
+      {:poison, "~> 4.0"}
     ]
   end
 

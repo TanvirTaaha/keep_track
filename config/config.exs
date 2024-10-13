@@ -58,6 +58,10 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
+# For google apis
+# config :goth,
+#   json: {:system, "GOOGLE_APPLICATION_CREDENTIALS"}
+
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 

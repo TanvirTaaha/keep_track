@@ -20,6 +20,18 @@ defmodule KeepTrackWeb.Router do
     get "/", PageController, :home
   end
 
+  scope "/", KeepTrackWeb.Live do
+    live "/tasks", TasksLive
+  end
+
+  scope "/auth", KeepTrackWeb do
+    pipe_through :browser
+
+    get "/", GoogleAuthController, :index
+    get "/callback", GoogleAuthController, :callback
+    # delete "/logout", AuthControler, :delete
+  end
+
   # Other scopes may use custom stacks.
   # scope "/api", KeepTrackWeb do
   #   pipe_through :api
