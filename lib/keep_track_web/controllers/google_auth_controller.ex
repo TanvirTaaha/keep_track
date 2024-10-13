@@ -12,6 +12,7 @@ defmodule KeepTrackWeb.GoogleAuthController do
 
   def callback(conn, %{"code" => code}) do
     client = KeepTrack.Google.GoogleAuth.get_token!(code: code)
+    dbg(client)
 
     conn
     |> put_session(:access_token, client.token.access_token)
