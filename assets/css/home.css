@@ -1,0 +1,48 @@
+#home .button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+#home #my-button {
+  @apply my-4;
+  background-color: #4CAF50;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+#home #my-button:hover {
+  background-color: #45a049;
+}
+
+#home #user_table {
+  @apply overflow-x-auto;
+}
+
+#home #user_table table {
+  @apply min-w-full border-collapse border border-gray-300;
+}
+
+#home #user_table thead {
+  @apply bg-gray-200;
+}
+
+#home #user_table th {
+  @apply px-4 py-2 border border-gray-300;
+}
+
+#home #user_table tbody tr {
+  @apply bg-white hover:bg-gray-100 cursor-pointer;
+}
+
+#home #user_table tbody tr {
+  @apply px-4 py-2 border border-gray-300 text-center;
+}

@@ -17,13 +17,14 @@ defmodule KeepTrackWeb.Router do
   scope "/", KeepTrackWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    # get "/", PageController, :home
     get "/dummy", PageController, :dummy
   end
 
   scope "/", KeepTrackWeb.Live do
     pipe_through :browser
 
+    live "/", HomeLive
     live "/tasks", TasksLive
   end
 

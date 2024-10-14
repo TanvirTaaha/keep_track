@@ -22,7 +22,12 @@ defmodule KeepTrack.Google.GoogleAuth do
   end
 
   def client do
-    file_path = System.get_env("GOOGLE_APPLICATION_CREDENTIALS")
+    file_path =
+      System.get_env("GOOGLE_APPLICATION_CREDENTIALS") ||
+        raise """
+        environment variable GOOGLE_APPLICATION_CREDENTIALS is missing.
+        """
+
     # IO.puts("Attempting to read file: #{file_path}")
 
     case read_client_secrets(file_path) do
@@ -48,6 +53,8 @@ defmodule KeepTrack.Google.GoogleAuth do
       scope:
         Enum.join(
           [
+            "https://www.googleapis.com/auth/userinfo.email",
+            "https://www.googleapis.com/auth/userinfo.profile",
             "https://www.googleapis.com/auth/tasks",
             "https://www.googleapis.com/auth/spreadsheets",
             "https://www.googleapis.com/auth/spreadsheets.readonly",
@@ -61,11 +68,49 @@ defmodule KeepTrack.Google.GoogleAuth do
   end
 
   def get_token!(params \\ [], headers \\ [], opts \\ []) do
-    OAuth2.Client.get_token!(client(), params, headers, opts)
+    case OAuth2.Client.get_token(client(), params, headers, opts) do
+      {:ok, client} ->
+        case Jason.decode(client.token.access_token) do
+          {:ok, token_map} ->
+            %{client | token: OAuth2.AccessToken.new(token_map)}
+
+          {:error, reason} ->
+            raise "Token parsing failed, reason#{reason}"
+        end
+
+      {:error, reason} ->
+        raise "Couldn't get token #{reason}"
+    end
+  end
+
+  def get_user_info(access_token) do
+    url = "https://www.googleapis.com/oauth2/v2/userinfo"
+    headers = [{"Authorization", "Bearer #{access_token}"}]
+
+    case HTTPoison.get(url, headers) do
+      {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
+        case Jason.decode(body) do
+          {:ok, user_info} ->
+            {:ok,
+             %{
+               id: user_info["id"],
+               email: user_info["email"],
+               name: user_info["name"]
+             }}
+
+          {:error, _} ->
+            {:error, "Failed to parse user info"}
+        end
+
+      {:ok, %HTTPoison.Response{status_code: status_code}} ->
+        {:error, "Failed to fetch user info. Status code: #{status_code}"}
+
+      {:error, %HTTPoison.Error{reason: reason}} ->
+        {:error, "HTTP request failed: #{reason}"}
+    end
   end
 
   # Strategy Callbacks
-
   def authorize_url(client, params) do
     OAuth2.Strategy.AuthCode.authorize_url(client, params)
   end
@@ -78,6 +123,8 @@ defmodule KeepTrack.Google.GoogleAuth do
 
   def refresh_token(refresh_token) do
     client = client()
+    IO.puts("refresh token called")
+    dbg(client)
 
     params = [
       grant_type: "refresh_token",

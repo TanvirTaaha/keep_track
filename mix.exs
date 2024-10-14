@@ -62,7 +62,10 @@ defmodule KeepTrack.MixProject do
       {:google_api_tasks, "~> 0.16.0"},
       {:google_api_sheets, "~> 0.33.4"},
       {:oauth2, "~> 2.0"},
-      {:poison, "~> 4.0"}
+      {:poison, "~> 5.0.0", override: true},
+      {:httpoison, "~> 2.2", override: true},
+      {:goth, "~> 1.3"},
+      {:timex, "~> 3.7"}
     ]
   end
 
