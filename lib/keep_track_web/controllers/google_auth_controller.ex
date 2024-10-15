@@ -6,10 +6,15 @@ defmodule KeepTrackWeb.GoogleAuthController do
   @doc """
   This action is reached via `/auth` and redirects to the Google OAuth2 provider.
   """
-  def index(conn, _params) do
-    redirect(conn,
-      external: KeepTrack.Google.GoogleAuth.authorize_url!()
-    )
+  def index(conn, %{"prompt_consent" => _}), do: handle_index(conn, true)
+  def index(conn, _params), do: handle_index(conn, false)
+
+  defp handle_index(conn, prompt_consent) do
+    dbg(prompt_consent)
+    google_url = KeepTrack.Google.GoogleAuth.authorize_url!(prompt_consent)
+    dbg(google_url)
+    # redirect(conn, to: "/")
+    redirect(conn, external: google_url)
   end
 
   def callback(conn, %{"code" => code}) do
@@ -17,6 +22,12 @@ defmodule KeepTrackWeb.GoogleAuthController do
          {:ok, user_info} <- GoogleAuth.get_user_info(client.token.access_token),
          {:ok, user} <- upsert_user(user_info, client.token),
          conn <- put_session(conn, :user_id, user.id) do
+      IO.puts("inside callback")
+      dbg(code)
+      # IO.puts("client:#{inspect(client)}")
+      dbg(client)
+      # IO.puts("user_info:#{inspect(user_info)}")
+      dbg(user_info)
       redirect(conn, to: "/")
     else
       {:error, reason} ->
@@ -47,7 +58,8 @@ defmodule KeepTrackWeb.GoogleAuthController do
       name: user_info.name,
       access_token: token.access_token,
       refresh_token: token.refresh_token,
-      token_expires_at: DateTime.from_unix!(token.expires_at)
+      token_expires_at: DateTime.from_unix!(token.expires_at),
+      picture_url: user_info.picture
     }
     |> Accounts.create_user()
   end
@@ -59,7 +71,8 @@ defmodule KeepTrackWeb.GoogleAuthController do
       name: user_info.name,
       access_token: token.access_token,
       refresh_token: token.refresh_token,
-      token_expires_at: DateTime.from_unix!(token.expires_at)
+      token_expires_at: DateTime.from_unix!(token.expires_at),
+      picture_url: user_info.picture
     })
   end
 end

@@ -48,8 +48,8 @@ defmodule KeepTrack.Google.GoogleAuth do
     end
   end
 
-  def authorize_url! do
-    OAuth2.Client.authorize_url!(client(),
+  def authorize_url!(prompt_consent \\ false) do
+    params = [
       scope:
         Enum.join(
           [
@@ -63,8 +63,13 @@ defmodule KeepTrack.Google.GoogleAuth do
             "https://www.googleapis.com/auth/drive.file"
           ],
           " "
-        )
-    )
+        ),
+      access_type: "offline"
+    ]
+
+    params = if prompt_consent, do: Keyword.put(params, :prompt, "consent"), else: params
+    dbg(params)
+    OAuth2.Client.authorize_url!(client(), params)
   end
 
   def get_token!(params \\ [], headers \\ [], opts \\ []) do
@@ -91,11 +96,14 @@ defmodule KeepTrack.Google.GoogleAuth do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
         case Jason.decode(body) do
           {:ok, user_info} ->
+            IO.puts("In get_user_info:#{inspect(user_info)}")
+
             {:ok,
              %{
                id: user_info["id"],
                email: user_info["email"],
-               name: user_info["name"]
+               name: user_info["name"],
+               picture: user_info["picture"]
              }}
 
           {:error, _} ->
@@ -110,7 +118,7 @@ defmodule KeepTrack.Google.GoogleAuth do
     end
   end
 
-  # Strategy Callbacks
+  # + Strategy Callbacks
   def authorize_url(client, params) do
     OAuth2.Strategy.AuthCode.authorize_url(client, params)
   end
@@ -120,6 +128,8 @@ defmodule KeepTrack.Google.GoogleAuth do
     |> put_header("Accept", "application/json")
     |> OAuth2.Strategy.AuthCode.get_token(params, headers)
   end
+
+  # - Strategy Callbacks
 
   def refresh_token(refresh_token) do
     client = client()
@@ -134,7 +144,8 @@ defmodule KeepTrack.Google.GoogleAuth do
     ]
 
     case OAuth2.Client.get_token(client, params) do
-      {:ok, %{token: %{access_token: new_access_token}} = _client} ->
+      {:ok, %{token: %{access_token: new_access_token}} = client} ->
+        dbg(client)
         {:ok, new_access_token}
 
       {:error, %{reason: reason}} ->

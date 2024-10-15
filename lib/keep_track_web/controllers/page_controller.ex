@@ -11,10 +11,11 @@ defmodule KeepTrackWeb.PageController do
     |> render(:home, layout: false)
   end
 
-  def dummy(conn, _params) do
+  def dummy(conn, params) do
     # The home page is often custom made,
     # so skip the default app layout.
-    # dbg(conn)
+    dbg(conn)
+    dbg(params)
     render(conn, :dummy)
   end
 end

@@ -17,6 +17,9 @@ defmodule KeepTrackWeb.Live.HomeLive do
     <div id="home">
       <div class="button-container">
         <button id="my-button" phx-click="button_clicked">Click Me</button>
+        <.link patch={~p"/auth"}>
+          <button id="auth-button">Auth</button>
+        </.link>
       </div>
       <div id="user_table">
         <table>
@@ -86,6 +89,7 @@ defmodule KeepTrackWeb.Live.HomeLive do
           IO.puts(inspect(user))
 
           socket
+          |> push_navigate(to: ~p"/tasks?id=#{user.google_id}")
       end
 
     {:noreply, socket}
