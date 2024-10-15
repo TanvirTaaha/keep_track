@@ -52,21 +52,18 @@ defmodule KeepTrackWeb.Live.HomeLive do
   end
 
   def handle_event("button_clicked", _params, socket) do
-    IO.puts("Button clicked!")
     send(self(), :list_all_users)
     {:noreply, socket}
   end
 
   def handle_event("user_clicked", %{"gid" => gid}, socket) do
-    IO.puts("User clicked!")
     send(self(), {:fetch_user, gid})
-    # IO.puts(inspect(Accounts.get_user_by_google_id(gid)))
     {:noreply, socket}
   end
 
   @spec handle_info(:list_all_users | {:fetch_user, any()}, any()) :: {:noreply, any()}
   def handle_info(:list_all_users, socket) do
-    IO.puts(":list_all_users msg received")
+    dbg(":list_all_users msg received")
 
     socket =
       assign(socket,
@@ -77,7 +74,7 @@ defmodule KeepTrackWeb.Live.HomeLive do
   end
 
   def handle_info({:fetch_user, gid}, socket) do
-    IO.puts("inside handle_info msg received, gid:#{gid}")
+    dbg("inside handle_info msg received, gid:#{gid}")
 
     socket =
       case Accounts.get_user_by_google_id(gid) do
@@ -86,7 +83,7 @@ defmodule KeepTrackWeb.Live.HomeLive do
           |> put_flash(:error, "No user found")
 
         user ->
-          IO.puts(inspect(user))
+          dbg(user)
 
           socket
           |> push_navigate(to: ~p"/tasks?id=#{user.google_id}")

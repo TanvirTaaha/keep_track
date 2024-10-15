@@ -3,9 +3,10 @@ defmodule KeepTrack.Google.Tasks do
   alias GoogleApi.Tasks.V1.Api.Tasklists
   alias GoogleApi.Tasks.V1.Api.Tasks
   alias KeepTrack.Google.GoogleAuth
+  alias KeepTrackWeb.GoogleAuthController
 
   def list_task_lists(user) do
-    connection = TasksConnection.new(user.access_token)
+    connection = TasksConnection.new(GoogleAuthController.access_token_for!(user))
 
     case Tasklists.tasks_tasklists_list(connection) do
       {:ok, %{items: task_lists}} ->

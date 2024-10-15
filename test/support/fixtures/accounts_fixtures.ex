@@ -28,7 +28,7 @@ defmodule KeepTrack.AccountsFixtures do
         refresh_token: "some refresh_token",
         token_expires_at: ~U[2024-10-12 20:18:00Z]
       })
-      |> KeepTrack.Accounts.create_users()
+      |> KeepTrack.Accounts.create_user()
 
     users
   end

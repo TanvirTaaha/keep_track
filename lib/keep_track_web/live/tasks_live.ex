@@ -35,14 +35,13 @@ defmodule KeepTrackWeb.Live.TasksLive do
 
         user ->
           task_lists = Tasks.list_task_lists(user)
-          IO.puts("task_lists:#{inspect(task_lists)}")
+          dbg(task_lists)
 
           socket
           |> assign(task_lists: task_lists)
       end
 
-    IO.puts("Found task_lists:")
-    IO.puts(inspect(socket.assigns.task_lists))
+    dbg(socket.assigns.task_lists)
     {:noreply, socket}
   end
 
@@ -128,7 +127,7 @@ defmodule KeepTrackWeb.Live.TasksLive do
       |> assign(selected_task_list: tlid)
 
     # |> push_navigate(to: ~p"/tasks?id=#{gid}")
-    IO.puts(inspect(socket))
+    dbg(socket)
     {:noreply, socket}
   end
 

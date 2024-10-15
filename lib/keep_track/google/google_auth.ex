@@ -28,8 +28,6 @@ defmodule KeepTrack.Google.GoogleAuth do
         environment variable GOOGLE_APPLICATION_CREDENTIALS is missing.
         """
 
-    # IO.puts("Attempting to read file: #{file_path}")
-
     case read_client_secrets(file_path) do
       {:ok, config} ->
         OAuth2.Client.new(
@@ -43,9 +41,24 @@ defmodule KeepTrack.Google.GoogleAuth do
         )
 
       {:error, reason} ->
-        IO.puts("Error reading client secrets: #{reason}")
+        dbg("Error reading client secrets: #{reason}")
         raise "Failed to configure OAuth2 client: #{reason}"
     end
+  end
+
+  def client(%KeepTrack.Accounts.User{} = user) do
+    token =
+      %{
+        "access_token" => user.access_token,
+        "refresh_token" => user.refresh_token
+      }
+      |> OAuth2.AccessToken.new()
+
+    %{client() | token: token}
+  end
+
+  def client(_) do
+    raise "Have to pass a %#{KeepTrack.Accounts.User}{} struct"
   end
 
   def authorize_url!(prompt_consent \\ false) do
@@ -96,7 +109,7 @@ defmodule KeepTrack.Google.GoogleAuth do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
         case Jason.decode(body) do
           {:ok, user_info} ->
-            IO.puts("In get_user_info:#{inspect(user_info)}")
+            dbg("In get_user_info:#{inspect(user_info)}")
 
             {:ok,
              %{
@@ -131,25 +144,44 @@ defmodule KeepTrack.Google.GoogleAuth do
 
   # - Strategy Callbacks
 
-  def refresh_token(refresh_token) do
-    client = client()
-    IO.puts("refresh token called")
-    dbg(client)
+  # def refresh_token(refresh_token) do
+  #   client = client()
+  #   dbg(client)
 
-    params = [
-      grant_type: "refresh_token",
-      refresh_token: refresh_token,
-      client_id: client.client_id,
-      client_secret: client.client_secret
-    ]
+  #   params = [
+  #     grant_type: "refresh_token",
+  #     refresh_token: refresh_token,
+  #     client_id: client.client_id,
+  #     client_secret: client.client_secret
+  #   ]
 
-    case OAuth2.Client.get_token(client, params) do
-      {:ok, %{token: %{access_token: new_access_token}} = client} ->
-        dbg(client)
-        {:ok, new_access_token}
+  #   case OAuth2.Client.get_token(client, params) do
+  #     {:ok, %{token: %{access_token: new_access_token}} = client} ->
+  #       dbg(client)
+  #       {:ok, new_access_token}
 
-      {:error, %{reason: reason}} ->
+  #     {:error, %{reason: reason}} ->
+  #       {:error, reason}
+  #   end
+  # end
+
+  def refresh_token(%KeepTrack.Accounts.User{} = user) do
+    case OAuth2.Client.refresh_token(client(user), [], [], []) do
+      {:ok, client} ->
+        case Jason.decode(client.token.access_token) do
+          {:ok, token_map} ->
+            {:ok, %{client | token: OAuth2.AccessToken.new(token_map)}}
+
+          {:error, reason} ->
+            {:error, reason}
+        end
+
+      {:error, reason} ->
         {:error, reason}
     end
+  end
+
+  def refresh_token(_) do
+    raise "Have to pass a %#{KeepTrack.Accounts.User}{} struct"
   end
 end

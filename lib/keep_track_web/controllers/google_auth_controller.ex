@@ -22,11 +22,8 @@ defmodule KeepTrackWeb.GoogleAuthController do
          {:ok, user_info} <- GoogleAuth.get_user_info(client.token.access_token),
          {:ok, user} <- upsert_user(user_info, client.token),
          conn <- put_session(conn, :user_id, user.id) do
-      IO.puts("inside callback")
       dbg(code)
-      # IO.puts("client:#{inspect(client)}")
       dbg(client)
-      # IO.puts("user_info:#{inspect(user_info)}")
       dbg(user_info)
       redirect(conn, to: "/")
     else
@@ -73,6 +70,44 @@ defmodule KeepTrackWeb.GoogleAuthController do
       refresh_token: token.refresh_token,
       token_expires_at: DateTime.from_unix!(token.expires_at),
       picture_url: user_info.picture
+    })
+  end
+
+  def access_token_for(%Accounts.User{} = user) do
+    # Check if the token is still valid
+    if DateTime.compare(DateTime.utc_now(), user.token_expires_at) == :lt do
+      {:ok, user.access_token}
+    else
+      # If expired, use the refresh token to get a new access token
+      dbg("Token expired")
+
+      case GoogleAuth.refresh_token(user) do
+        {:ok, client} ->
+          dbg(update_new_token_for(user, client.token))
+          {:ok, client.token.access_token}
+
+        {:error, reason} ->
+          {:error, reason}
+      end
+    end
+  end
+
+  def access_token_for(_user) do
+    raise "Have to pass a user schema struct"
+  end
+
+  def access_token_for!(%Accounts.User{} = user) do
+    case access_token_for(user) do
+      {:ok, token} -> token
+      {:error, error} -> raise error
+    end
+  end
+
+  defp update_new_token_for(%Accounts.User{} = user, %OAuth2.AccessToken{} = token) do
+    user
+    |> Accounts.update_user(%{
+      access_token: token.access_token,
+      token_expires_at: DateTime.from_unix!(token.expires_at)
     })
   end
 end
