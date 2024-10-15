@@ -28,7 +28,7 @@ defmodule KeepTrack.Google.Tasks do
         tasks
 
       {:error, response} ->
-        %{"error" => %{"message" => message, "status" => status}} = Jason.decode!(response.body)
+        %{"error" => %{"message" => _message, "status" => _status}} = Jason.decode!(response.body)
         []
     end
   end

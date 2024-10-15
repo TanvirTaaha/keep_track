@@ -42,3 +42,4 @@ npm-debug.log
 *.env
 google_secret*.json
 .junk
+gen_context.sh
