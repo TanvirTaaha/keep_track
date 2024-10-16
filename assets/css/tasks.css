@@ -40,7 +40,11 @@
   @apply font-bold text-center mt-2;
 }
 
-/* Upper table */
+#tasks .empty_table {
+  @apply text-center;
+}
+
+/* Upper  table */
 
 
 #tasks #tasks_list_table {

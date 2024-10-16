@@ -1,8 +1,8 @@
 defmodule KeepTrackWeb.Live.TasksLive do
-  alias KeepTrack.Accounts
   use KeepTrackWeb, :live_view
-
+  alias KeepTrack.Accounts
   alias KeepTrack.Google.Tasks
+  alias KeepTrack.Agents
 
   def mount(_params, _session, socket) do
     socket =
@@ -13,11 +13,24 @@ defmodule KeepTrackWeb.Live.TasksLive do
         selected_task_list: nil
       )
 
+    dbg("Mount called")
+    Agents.UserStateAgent.start_link(nil)
     {:ok, socket}
   end
 
+  def handle_params(%{"id" => gid, "tlid" => tlid}, _uri, socket) do
+    unless Map.has_key?(socket.assigns, :tlid) do
+      send(self(), {:fetch_tasks, gid, tlid})
+    end
+
+    {:noreply, socket}
+  end
+
   def handle_params(%{"id" => gid}, _uri, socket) do
-    send(self(), {:fetch_takslist, gid})
+    unless Map.has_key?(socket.assigns, :gid) do
+      send(self(), {:fetch_tasklists, gid})
+    end
+
     {:noreply, socket}
   end
 
@@ -25,27 +38,55 @@ defmodule KeepTrackWeb.Live.TasksLive do
     {:noreply, socket}
   end
 
-  def handle_info({:fetch_takslist, gid}, socket) do
+  def handle_info({:fetch_tasklists, gid}, socket) do
     socket =
-      case Accounts.get_user_by_google_id(gid) do
+      case dbg(Accounts.get_user_by_google_id(gid)) do
         nil ->
           socket
           |> put_flash(:error, "No user found")
           |> push_navigate(to: ~p"/")
 
         user ->
+          dbg("Matched with user")
+          dbg(Agents.UserStateAgent.update(user))
           task_lists = Tasks.list_task_lists(user)
           dbg(task_lists)
 
           socket
-          |> assign(task_lists: task_lists)
+          |> assign(task_lists: task_lists, gid: gid)
       end
 
-    dbg(socket.assigns.task_lists)
+    {:noreply, socket}
+  end
+
+  def handle_info({:fetch_tasks, gid, tlid}, socket) do
+    socket =
+      if Map.has_key?(socket.assigns, :gid) do
+        socket
+      else
+        {:noreply, socket} = handle_info({:fetch_tasklists, gid}, socket)
+        socket
+      end
+
+    dbg("tasklist checked, fetching tasks")
+
+    tasks =
+      Tasks.list_tasks(Agents.UserStateAgent.value(), tlid)
+      |> Enum.frequencies_by(&(&1.title |> String.split() |> List.first()))
+
+    socket =
+      assign(socket,
+        selected_task_list: tlid,
+        tasks: dbg(tasks)
+      )
+
+    dbg(socket)
     {:noreply, socket}
   end
 
   def render(assigns) do
+    dbg("Render called")
+
     ~H"""
     <div id="tasks">
       <div class="button-container">
@@ -82,14 +123,14 @@ defmodule KeepTrackWeb.Live.TasksLive do
           </tbody>
         </table>
       </div>
-      <%= if not Enum.empty?(@tasks) do %>
+      <%= unless Enum.empty?(@tasks) do %>
         <div class="table_title">Tasks</div>
         <div id="tasks_table">
           <table>
             <thead>
               <tr>
                 <th>Name</th>
-                <th>ID</th>
+                <th>Count</th>
                 <%!-- <th>Google ID</th> --%>
                 <%!-- <th>Expire At</th> --%>
               </tr>
@@ -97,8 +138,8 @@ defmodule KeepTrackWeb.Live.TasksLive do
             <tbody>
               <%= for task <- @tasks do %>
                 <tr phx-click="task_clicked">
-                  <td><%= task.title %></td>
-                  <td><%= task.id %></td>
+                  <td><%= elem(task, 0) %></td>
+                  <td><%= elem(task, 1) %></td>
                   <%!-- <td><%= user.google_id %></td> --%>
                   <%!-- <td>
                   <%= user.token_expires_at
@@ -109,6 +150,10 @@ defmodule KeepTrackWeb.Live.TasksLive do
               <% end %>
             </tbody>
           </table>
+        </div>
+      <% else %>
+        <div class="empty_table">
+          <span>No entry found</span>
         </div>
       <% end %>
     </div>
@@ -125,8 +170,8 @@ defmodule KeepTrackWeb.Live.TasksLive do
       socket
       |> put_flash(:info, "Task List Clicked")
       |> assign(selected_task_list: tlid)
+      |> push_patch(to: ~p"/tasks?id=#{socket.assigns.gid}&tlid=#{tlid}")
 
-    # |> push_navigate(to: ~p"/tasks?id=#{gid}")
     dbg(socket)
     {:noreply, socket}
   end

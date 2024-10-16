@@ -21,15 +21,18 @@ defmodule KeepTrack.Google.Tasks do
     end
   end
 
-  def list_tasks(user, task_list) do
+  def list_tasks(user, taskListId) do
     connection = TasksConnection.new(user.access_token)
 
-    case Tasks.tasks_tasks_list(connection, task_list) do
+    case Tasks.tasks_tasks_list(connection, taskListId) do
       {:ok, %{items: tasks}} ->
         tasks
 
       {:error, response} ->
-        %{"error" => %{"message" => _message, "status" => _status}} = Jason.decode!(response.body)
+        %{"error" => %{"message" => message}} = Jason.decode!(response.body)
+
+        dbg("Failed to fetch tasks for tasklist:#{taskListId}, message:#{message}")
+
         []
     end
   end
