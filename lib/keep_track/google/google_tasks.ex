@@ -32,6 +32,7 @@ defmodule KeepTrack.Google.Tasks do
       showAssigned: true
     ]
 
+    # TODO: Have to implement pagination
     case Tasks.tasks_tasks_list(connection, taskListId, params) do
       {:ok, %{items: tasks} = response} ->
         dbg("Fetched #{length(tasks)} tasks")
