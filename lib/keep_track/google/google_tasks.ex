@@ -24,8 +24,18 @@ defmodule KeepTrack.Google.Tasks do
   def list_tasks(user, taskListId) do
     connection = TasksConnection.new(user.access_token)
 
-    case Tasks.tasks_tasks_list(connection, taskListId) do
-      {:ok, %{items: tasks}} ->
+    params = [
+      showCompleted: true,
+      showDeleted: true,
+      showHidden: true,
+      maxResults: 500,
+      showAssigned: true
+    ]
+
+    case Tasks.tasks_tasks_list(connection, taskListId, params) do
+      {:ok, %{items: tasks} = response} ->
+        dbg("Fetched #{length(tasks)} tasks")
+        dbg(response)
         tasks
 
       {:error, response} ->

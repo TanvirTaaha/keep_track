@@ -71,7 +71,7 @@ defmodule KeepTrackWeb.Live.TasksLive do
     dbg("tasklist checked, fetching tasks")
 
     tasks =
-      Tasks.list_tasks(Agents.UserStateAgent.value(), tlid)
+      dbg(Tasks.list_tasks(Agents.UserStateAgent.value(), tlid))
       |> Enum.frequencies_by(&(&1.title |> String.split() |> List.first()))
 
     socket =
